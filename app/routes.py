@@ -1,0 +1,1 @@
+# Définit les routes de ton application Flask
