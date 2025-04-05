@@ -1,10 +1,9 @@
-from fastapi import FastAPI
+from . import app
+from flask import request
 import os
 
-app = FastAPI()
-
-@app.get("/get-document/{filename}")
-async def read_document(filename: str):
+@app.route("/get-document/<filename>")
+def read_document(filename):
     path_to_document = os.path.join("Documents", filename)
     try:
         with open(path_to_document, "r") as file:
@@ -13,6 +12,7 @@ async def read_document(filename: str):
     except FileNotFoundError:
         return {"error": "File not found"}, 404
 
-@app.post("/submit-response")
-async def submit_response(data: str):
+@app.route("/submit-response", methods=["POST"])
+def submit_response():
+    data = request.data.decode()
     return {"response": f"IA response to {data}"}
