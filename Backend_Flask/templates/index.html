@@ -3,254 +3,876 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ACW - Assistant Citoyen Wallon</title>
+    <title>ACW Assistant</title>
     <style>
-        /* --- Styles Généraux --- */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        /* Styles généraux */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #3a66db;
+            --primary-light: #5c85f7;
+            --primary-dark: #2a4cb0;
+            --secondary: #1db954;
+            --secondary-light: #3dd775;
+            --secondary-dark: #0e9c3f;
+            --tertiary: #9c27b0;
+            --tertiary-light: #c158dc;
+            --tertiary-dark: #7b1fa2;
+            --gradient-primary: linear-gradient(145deg, var(--primary), var(--primary-dark));
+            --gradient-secondary: linear-gradient(145deg, var(--secondary), var(--secondary-dark));
+            --gradient-tertiary: linear-gradient(145deg, var(--tertiary), var(--tertiary-dark));
+            --neutral-light: #f7f9fc;
+            --neutral: #eef2f5;
+            --neutral-dark: #aebad0;
+            --text-dark: #252a34;
+            --text-medium: #546478;
+            --text-light: #a1aec0;
+            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07), 0 2px 5px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1), 0 5px 10px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
+            --border-radius-sm: 6px;
+            --border-radius-md: 12px;
+            --border-radius-lg: 20px;
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.3s ease;
+        }
+        
+        * {
             margin: 0;
-            padding: 20px;
-            background-color: #f0f4f8; /* Fond bleu très clair */
-            color: #333;
-            display: flex;
-            flex-direction: column; /* Permet de centrer le contenu global */
-            align-items: center;
-            min-height: 100vh;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--neutral);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
         }
 
-        .page-container {
-            width: 100%;
-            max-width: 1000px; /* Largeur max pour la page */
-            margin: auto;
-        }
-
-        h1.page-title {
+        /* Header */
+        .header {
             text-align: center;
-            color: #003366; /* Bleu foncé */
-            margin-bottom: 30px;
-            font-size: 2em;
+            padding: 1.5rem 0 2.5rem;
+            background: var(--gradient-primary);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            pointer-events: none;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo-icon {
+            margin-right: 0.8rem;
+            font-size: 3rem;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
+            animation: pulse 4s infinite ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .tagline {
+            font-size: 1.1rem;
+            font-weight: 300;
+            max-width: 600px;
+            margin: 0 auto;
+            opacity: 0.9;
         }
 
-        /* --- Styles pour les Cartes --- */
-        .card-container {
+        /* Grille principale */
+        .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Grille responsive */
-            gap: 25px; /* Espace entre les cartes */
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.8rem;
+            max-width: 1200px;
+            margin: -3rem auto 2rem;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 10;
         }
 
+        /* Cartes */
         .card {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 25px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            background-color: white;
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-md);
+            padding: 2rem;
             cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between; /* Espace le contenu verticalement */
-            min-height: 220px; /* Hauteur minimale pour alignement */
+            position: relative;
+            overflow: hidden;
+            transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+            border: 1px solid rgba(255,255,255,0.2);
+            height: 100%;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom right, rgba(255,255,255,0.5), rgba(255,255,255,0));
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity var(--transition-normal);
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .card:hover::before {
+            opacity: 1;
+        }
+        
+        .card:active {
+            transform: translateY(-3px);
+            transition: transform 0.1s;
         }
 
         .card-icon {
-            font-size: 2.5em;
-            margin-bottom: 15px;
-            color: #00509e; /* Bleu moyen */
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+            padding: 1rem;
+            border-radius: 50%;
+            background: var(--neutral-light);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            z-index: 1;
+            transition: transform var(--transition-normal);
+        }
+        
+        .card:hover .card-icon {
+            transform: scale(1.1);
         }
 
-        .card h2 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            font-size: 1.2em;
-            color: #003366;
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            color: var(--text-dark);
+            position: relative;
+        }
+        
+        .card-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: currentColor;
+            border-radius: 3px;
+            transition: width var(--transition-normal);
+        }
+        
+        .card:hover .card-title::after {
+            width: 70px;
         }
 
-        .card p {
-            font-size: 0.95em;
-            color: #555;
-            flex-grow: 1; /* Permet à la description de prendre de la place */
-            margin-bottom: 15px;
+        .card-description {
+            font-size: 0.95rem;
+            color: var(--text-medium);
+            line-height: 1.7;
         }
 
-        /* --- Styles Arbre Décisionnel --- */
-        .decision-tree-container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
+        /* Couleurs des icônes */
+        .icon-blue {
+            color: var(--primary);
+            background: rgba(58, 102, 219, 0.1);
         }
-        .decision-tree-container h3 { color: #003366; margin-bottom: 20px; }
-        .decision-buttons button {
-            background-color: #0078d4;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            margin: 5px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.2s ease;
-        }
-        .decision-buttons button:hover { background-color: #005a9e; }
 
-        /* --- Styles Chat (initialement cachés) --- */
-        .chat-container {
-            width: 100%;
-            max-width: 800px; /* Peut être différent de page-container si besoin */
-            height: 80vh;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        .icon-green {
+            color: var(--secondary);
+            background: rgba(29, 185, 84, 0.1);
+        }
+
+        .icon-purple {
+            color: var(--tertiary);
+            background: rgba(156, 39, 176, 0.1);
+        }
+
+        .icon-orange {
+            color: #ff8c00;
+            background: rgba(255, 140, 0, 0.1);
+        }
+
+        /* Sous-cartes pour la section À venir */
+        .subcard {
+            background-color: white;
+            padding: 1.2rem;
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        
+        .subcard:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .subcard-lavender {
+            background-color: #f8f0ff;
+            border-left: 4px solid var(--tertiary);
+        }
+
+        .subcard-lightblue {
+            background-color: #e6f7ff;
+            border-left: 4px solid var(--primary);
+        }
+
+        .subcard-lightgreen {
+            background-color: #e6ffed;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .subcard-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
             display: flex;
+            align-items: center;
+        }
+        
+        .subcard-title::before {
+            content: '⟠';
+            margin-right: 8px;
+            font-size: 0.9em;
+            color: inherit;
+        }
+
+        .subcard-description {
+            font-size: 0.9rem;
+            color: var(--text-medium);
+        }
+
+        /* Interface de chat */
+        #chat-interface {
+            display: none;
+            width: 90%;
+            max-width: 800px;
+            height: 90vh;
+            background-color: white;
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-xl);
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
             flex-direction: column;
             overflow: hidden;
-            margin: auto; /* Centrer le chat une fois affiché */
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: opacity 0.3s, transform 0.3s;
         }
-        /* Reprendre les styles .chatbox, .message, .input-area, etc. de la version précédente */
-        #chatbox { flex-grow: 1; overflow-y: auto; padding: 15px 20px; border-bottom: 1px solid #eee; scroll-behavior: smooth; }
-        .message { margin-bottom: 15px; padding: 10px 15px; border-radius: 18px; max-width: 80%; line-height: 1.4; word-wrap: break-word; }
-        .user-message { background-color: #0078d4; color: white; margin-left: auto; border-bottom-right-radius: 5px; clear: both; float: right; }
-        .assistant-message { background-color: #f0f0f0; color: #333; margin-right: auto; border-bottom-left-radius: 5px; clear: both; float: left; white-space: pre-wrap; }
-        .error-message { background-color: #fdecea; color: #a80000; border: 1px solid #f4a09f; }
-        .thinking { font-style: italic; color: #777; text-align: center; padding: 10px; clear: both; }
-        #input-area { display: flex; padding: 15px; border-top: 1px solid #eee; background-color: #f9f9f9; align-items: center; }
-        #userInput { flex-grow: 1; padding: 12px 15px; border: 1px solid #ccc; border-radius: 20px; margin-right: 10px; font-size: 1rem; line-height: 1.2; resize: none; overflow-y: hidden; min-height: 20px; max-height: 100px; }
-        #sendButton { padding: 12px 20px; background-color: #0078d4; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 1rem; transition: background-color 0.2s ease; flex-shrink: 0; }
-        #sendButton:hover { background-color: #005a9e; }
-        #sendButton:disabled { background-color: #b0b0b0; cursor: not-allowed; }
-        /* Reprendre les styles #escalationForm de la version précédente */
-        #escalationForm { border-top: 1px solid #eee; padding: 20px; margin-top: 10px; background-color: #f9f9f9; display: none; max-height: 70vh; overflow-y: auto; }
-        #escalationForm h2 { margin-top: 0; color: #00509e; }
-        #escalationForm label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; }
-        #escalationForm input[type=text], #escalationForm input[type=email], #escalationForm textarea { width: calc(100% - 24px); padding: 10px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; box-sizing: border-box; }
-        #escalationForm textarea { min-height: 80px; resize: vertical; }
-        #escalationForm button { margin-top: 10px; padding: 10px 15px; font-size: 0.95rem; }
-        .form-error { color: #d8000c; background-color: #ffdddd; border: 1px solid #fbc7c7; padding: 8px; margin-top: 10px; border-radius: 4px; font-size: 0.9em; }
-        .form-buttons button { margin-right: 10px; }
+        
+        #chat-interface.visible {
+            animation: scaleIn 0.3s forwards;
+        }
+        
+        @keyframes scaleIn {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
 
+        #chatbox {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px 20px;
+            background-color: #f9fafc;
+            background-image: 
+                radial-gradient(#e4e9f4 1px, transparent 1px),
+                radial-gradient(#e4e9f4 1px, transparent 1px);
+            background-position: 0 0, 25px 25px;
+            background-size: 50px 50px;
+            scroll-behavior: smooth;
+        }
 
-        /* --- Styles Popup Info --- */
-        .info-popup-overlay {
+        .message {
+            margin-bottom: 20px;
+            padding: 16px;
+            border-radius: var(--border-radius-md);
+            max-width: 85%;
+            line-height: 1.5;
+            word-wrap: break-word;
+            position: relative;
+            animation: messageIn 0.3s forwards;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        @keyframes messageIn {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message p {
+            margin: 0;
+        }
+
+        .user-message {
+            background: var(--gradient-primary);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+            clear: both;
+            float: right;
+        }
+        
+        .user-message::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: -10px;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-dark);
+            border-bottom-left-radius: 50%;
+            clip-path: polygon(0 0, 0% 100%, 100% 100%);
+        }
+
+        .assistant-message {
+            background: white;
+            color: var(--text-dark);
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+            clear: both;
+            float: left;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .assistant-message::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -14px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-bottom-right-radius: 50%;
+            clip-path: polygon(100% 0, 100% 100%, 0 100%);
+        }
+
+        .error-message {
+            background-color: #fff2f0;
+            color: #cf1322;
+            border-left: 4px solid #cf1322;
+        }
+
+        .thinking {
+            font-style: italic;
+            color: var(--text-medium);
+            text-align: center;
+            padding: 10px;
+            clear: both;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        
+        /* Style pour les options cliquables */
+        .chat-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .option-button {
+            background-color: white;
+            border: 1px solid var(--neutral-dark);
+            border-radius: var(--border-radius-lg);
+            padding: 10px 16px;
+            text-align: left;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .option-button::before {
+            content: '⟠';
+            margin-right: 8px;
+            font-size: 0.8em;
+            color: var(--primary);
+        }
+        
+        .option-button::after {
+            content: '';
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--primary);
+            top: calc(50% - 2.5px);
+            left: calc(50% - 2.5px);
+            opacity: 0;
+            transform: scale(0);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .option-button:hover {
+            background-color: var(--neutral-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            color: var(--primary);
+            padding-left: 20px;
+            border-color: var(--primary-light);
+        }
+        
+        .option-button:active {
+            transform: translateY(0);
+            background-color: var(--neutral);
+        }
+        
+        .option-button:active::after {
+            transform: scale(20);
+            opacity: 0.1;
+        }
+        
+        /* Ajuster les options dans les messages de l'assistant */
+        .assistant-message .chat-options {
+            margin-left: -5px;
+            width: calc(100% + 10px);
+        }
+
+        #escalationForm {
+            border-top: 1px solid var(--neutral-dark);
+            padding: 20px;
+            margin-top: 10px;
+            background-color: white;
+            display: none;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        #escalationForm h2 { 
+            margin-top: 0; 
+            color: var(--primary-dark);
+            font-weight: 600;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        #escalationForm h2:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+        
+        #escalationForm label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 500; 
+            font-size: 0.9rem;
+            color: var(--text-medium);
+        }
+        
+        #escalationForm input[type=text],
+        #escalationForm input[type=email],
+        #escalationForm textarea {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 16px;
+            border: 1px solid var(--neutral-dark);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+            font-family: inherit;
+        }
+        
+        #escalationForm input[type=text]:focus,
+        #escalationForm input[type=email]:focus,
+        #escalationForm textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(58, 102, 219, 0.15);
+        }
+        
+        #escalationForm textarea { 
+            min-height: 100px; 
+            resize: vertical;
+            line-height: 1.5;
+        }
+        
+        #escalationForm button {
+            padding: 12px 18px;
+            font-size: 0.95rem;
+            border-radius: var(--border-radius-sm);
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            margin-right: 10px;
+            font-family: inherit;
+        }
+        
+        #escalationForm button[type=submit] {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        #escalationForm button[type=submit]:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        #escalationForm button[type=button] {
+            background: #f0f0f0;
+            color: var(--text-medium);
+        }
+        
+        #escalationForm button[type=button]:hover {
+            background: #e0e0e0;
+        }
+        
+        .form-error { 
+            color: #cf1322; 
+            background-color: #fff1f0; 
+            border: 1px solid #ffccc7; 
+            padding: 10px; 
+            margin-top: 10px; 
+            border-radius: var(--border-radius-sm); 
+            font-size: 0.9em;
+            position: relative;
+            padding-left: 36px;
+        }
+        
+        .form-error::before {
+            content: '⚠';
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2em;
+        }
+        
+        .form-buttons {
+            display: flex;
+            margin-top: 20px;
+        }
+
+        #input-area {
+            display: flex;
+            padding: 15px 20px;
+            background-color: white;
+            align-items: center;
+            border-top: 1px solid var(--neutral-dark);
+            position: relative;
+        }
+        
+        #userInput {
+            flex-grow: 1;
+            padding: 14px 18px;
+            border: 1px solid var(--neutral-dark);
+            border-radius: var(--border-radius-lg);
+            margin-right: 12px;
+            font-size: 1rem;
+            line-height: 1.5;
+            resize: none;
+            overflow-y: hidden;
+            min-height: 24px;
+            max-height: 120px;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+            font-family: inherit;
+        }
+        
+        #userInput:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(58, 102, 219, 0.15);
+        }
+        
+        #sendButton {
+            padding: 14px 22px;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-lg);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all var(--transition-fast);
+            flex-shrink: 0;
+            font-weight: 500;
+            box-shadow: var(--shadow-sm);
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #sendButton:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        #sendButton:active {
+            transform: translateY(0);
+        }
+        
+        #sendButton::after {
+            content: '↗';
+            margin-left: 5px;
+            font-size: 1.2em;
+        }
+        
+        #sendButton:disabled {
+            background: linear-gradient(145deg, #c8c8c8, #a8a8a8);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Overlay pour fond sombre quand chat ouvert */
+        #overlay {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.6);
+            z-index: 50;
+            backdrop-filter: blur(3px);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        #overlay.visible {
+            opacity: 1;
+        }
+
+        /* Header du chat */
+        .chat-header {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            z-index: 1000; /* Au-dessus de tout */
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--neutral-dark);
+            background: var(--gradient-primary);
+            color: white;
         }
-        .info-popup-content {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            max-width: 600px;
-            width: 80%;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            position: relative;
-            max-height: 80vh;
-            overflow-y: auto;
+
+        .chat-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
         }
-        .info-popup-content h2 { margin-top: 0; color: #003366; }
-        .info-popup-close {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 1.8em;
-            line-height: 1;
-            cursor: pointer;
-            color: #888;
-            border: none;
+        
+        .chat-title::before {
+            content: '🧠';
+            margin-right: 10px;
+            font-size: 1.3em;
+        }
+
+        .close-button {
             background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: white;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color var(--transition-fast);
         }
-        .info-popup-close:hover { color: #333; }
 
-        /* Classe utilitaire pour cacher/afficher */
-        .hidden { display: none; }
+        .close-button:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
 
+        /* Responsive fixes */
+        @media (max-width: 1000px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                margin-top: -2rem;
+            }
+            
+            .logo {
+                font-size: 2.2rem;
+            }
+            
+            .tagline {
+                font-size: 0.95rem;
+                padding: 0 1rem;
+            }
+        }
+        
+        @media (max-width: 700px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+            
+            #chat-interface {
+                width: 100%;
+                height: 100%;
+                border-radius: 0;
+            }
+            
+            .subcard {
+                padding: 1rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="header">
+        <div class="logo">
+            <span class="logo-icon">🧠</span>
+            <span>ACW</span>
+        </div>
+        <p class="tagline">L'assistant citoyen wallon à votre service</p>
+    </div>
 
-    <div class="page-container">
-        <h1 class="page-title">ACW - Assistant Citoyen Wallon</h1>
+    <div class="grid-container">
+        <!-- Carte Aide à la rédaction -->
+        <div class="card" onclick="openChat('aid')">
+            <div class="card-icon icon-blue">✏️</div>
+            <div class="card-title">Aide à la rédaction</div>
+            <div class="card-description">Assistance guidée pour formuler votre demande avec précision</div>
+        </div>
 
-        <div class="card-container" id="card-container">
-            <div class="card" data-action="start-chat-aid">
-                <div class="card-icon">✍️</div>
-                <h2>Aide à la Rédaction</h2>
-                <p>Besoin d'aide pour formuler votre question ou votre demande ? L'assistant vous guidera pas à pas.</p>
+        <!-- Carte Sans aide à la rédaction -->
+        <div class="card" onclick="openChat('direct')">
+            <div class="card-icon icon-green">💬</div>
+            <div class="card-title">Sans aide à la rédaction</div>
+            <div class="card-description">Posez directement votre question à l'assistant</div>
+        </div>
+
+        <!-- Carte Documentation -->
+        <div class="card" onclick="showDocumentation()">
+            <div class="card-icon icon-purple">📚</div>
+            <div class="card-title">Documentation</div>
+            <div class="card-description">Comment ça marche ?</div>
+        </div>
+
+        <!-- Carte À venir -->
+        <div class="card">
+            <div class="card-icon icon-orange">❓</div>
+            <div class="card-title">À venir</div>
+            
+            <div class="subcard subcard-lavender">
+                <div class="subcard-title">Assistant intelligent</div>
+                <div class="subcard-description">À l'avenir, un assistant capable de tout faire : remplir vos documents, répondre à vos questions, et bien plus encore</div>
+            </div>
+            
+            <div class="subcard subcard-lightblue">
+                <div class="subcard-title">Base de données encore plus grande !</div>
+                <div class="subcard-description">Plus d'informations locales, historiques et administratives à portée de main</div>
+            </div>
+            
+            <div class="subcard subcard-lightgreen">
+                <div class="subcard-title">Application mobile</div>
+                <div class="subcard-description">Accès à ACW depuis votre smartphone</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay pour assombrir l'arrière-plan -->
+    <div id="overlay" onclick="closeChat()"></div>
+
+    <!-- Interface de chat -->
+    <div id="chat-interface">
+        <div class="chat-header">
+            <h1 class="chat-title">Assistant Citoyen Wallon (ACW)</h1>
+            <button class="close-button" onclick="closeChat()">&times;</button>
+        </div>
+
+        <div id="chatbox" role="log" aria-live="polite">
+            <!-- Les messages s'afficheront ici -->
+        </div>
+
+        <div id="escalationForm">
+            <h2>Formulaire de demande d'assistance</h2>
+            <p>Veuillez compléter les informations ci-dessous pour qu'un agent puisse traiter votre demande.</p>
+            <form id="ticketForm" novalidate>
+                <div>
+                    <label for="nom">Nom complet :</label>
+                    <input type="text" id="nom" name="nom" required minlength="2">
                 </div>
-
-            <div class="card" data-action="start-chat-direct">
-                <div class="card-icon">💬</div>
-                <h2>Accès Direct</h2>
-                <p>Vous savez ce que vous cherchez ? Posez directement votre question à l'assistant.</p>
-            </div>
-
-            <div class="card" data-action="show-docs">
-                <div class="card-icon">ℹ️</div>
-                <h2>Comment ça marche ?</h2>
-                <p>Comprendre le fonctionnement de l'assistant, ses capacités et ses limites.</p>
-            </div>
-
-            <div class="card" data-action="show-future">
-                <div class="card-icon">🚀</div>
-                <h2>À Venir</h2>
-                <p>Découvrez les prochaines améliorations et nouvelles fonctionnalités prévues pour l'assistant.</p>
-            </div>
-        </div>
-        <div class="decision-tree-container hidden" id="decision-tree-container">
-            </div>
-        <div class="chat-container hidden" id="chat-container">
-            <div id="chatbox" role="log" aria-live="polite">
+                <div>
+                    <label for="contact_email">Adresse Email :</label>
+                    <input type="email" id="contact_email" name="contact_email" required>
                 </div>
-
-            <div id="escalationForm">
-                 <h2>Formulaire de demande d'assistance</h2>
-                 <p>Veuillez compléter les informations ci-dessous...</p>
-                 <form id="ticketForm" novalidate>
-                    <div><label for="nom">Nom complet :</label><input type="text" id="nom" name="nom" required minlength="2"></div>
-                    <div><label for="contact_email">Adresse Email :</label><input type="email" id="contact_email" name="contact_email" required></div>
-                    <div><label for="commune">Commune :</label><input type="text" id="commune" name="commune" required minlength="2"></div>
-                    <div><label for="sujet">Sujet :</label><input type="text" id="sujet" name="sujet" required minlength="5"></div>
-                    <div><label for="description_probleme">Description :</label><textarea id="description_probleme" name="description_probleme" required minlength="10"></textarea></div>
-                    <div id="formError" class="form-error" style="display: none;"></div>
-                    <div class="form-buttons">
-                        <button type="submit" id="submitTicketButton">Envoyer la demande</button>
-                        <button type="button" onclick="hideEscalationForm()" style="background-color: grey;">Annuler</button>
-                    </div>
-                 </form>
-            </div>
-
-            <div id="input-area">
-                <textarea id="userInput" placeholder="Posez votre question ici..." aria-label="Votre question" rows="1" oninput="autoGrow(this)"></textarea>
-                <button id="sendButton" onclick="sendMessage()">Envoyer</button>
-            </div>
+                <div>
+                    <label for="commune">Commune :</label>
+                    <input type="text" id="commune" name="commune" required minlength="2">
+                </div>
+                <div>
+                    <label for="sujet">Sujet de votre demande :</label>
+                    <input type="text" id="sujet" name="sujet" required minlength="5">
+                </div>
+                <div>
+                    <label for="description_probleme">Description détaillée de votre problème/question :</label>
+                    <textarea id="description_probleme" name="description_probleme" required minlength="10"></textarea>
+                </div>
+                <div id="formError" class="form-error" style="display: none;"></div>
+                <div class="form-buttons">
+                    <button type="submit" id="submitTicketButton">Envoyer la demande</button>
+                    <button type="button" onclick="hideEscalationForm()" style="background-color: grey;">Annuler</button>
+                </div>
+            </form>
         </div>
-        <div class="info-popup-overlay hidden" id="info-popup">
-            <div class="info-popup-content">
-                <button class="info-popup-close" onclick="hideInfoPopup()" aria-label="Fermer">&times;</button>
-                <h2 id="info-popup-title"></h2>
-                <div id="info-popup-body"></div>
-            </div>
+
+        <div id="input-area">
+            <textarea id="userInput" placeholder="Posez votre question ici..." aria-label="Votre question" rows="1" oninput="autoGrow(this)"></textarea>
+            <button id="sendButton" onclick="sendMessage()">Envoyer</button>
         </div>
-        </div> <script>
-        // Références DOM globales
-        const pageContainer = document.querySelector('.page-container');
-        const cardContainer = document.getElementById('card-container');
-        const decisionTreeContainer = document.getElementById('decision-tree-container');
-        const chatContainer = document.getElementById('chat-container');
+    </div>
+
+    <script>
+        // Variables globales
         const chatbox = document.getElementById('chatbox');
         const userInput = document.getElementById('userInput');
         const sendButton = document.getElementById('sendButton');
@@ -258,137 +880,326 @@
         const ticketForm = document.getElementById('ticketForm');
         const submitTicketButton = document.getElementById('submitTicketButton');
         const formErrorDiv = document.getElementById('formError');
-        const infoPopup = document.getElementById('info-popup');
-        const infoPopupTitle = document.getElementById('info-popup-title');
-        const infoPopupBody = document.getElementById('info-popup-body');
-
-        // Variables d'état
+        const chatInterface = document.getElementById('chat-interface');
+        const overlay = document.getElementById('overlay');
         let isWaiting = false;
-        let chatMode = 'direct'; // Mode par défaut si arbre sauté ('direct' ou 'aid')
-        let firstMessageSent = false;
-        let decisionTreeContext = {}; // Pour stocker les choix de l'arbre
+        let currentChatMode = null;
 
-        // --- Initialisation ---
-        document.addEventListener('DOMContentLoaded', init);
-
-        function init() {
-            // Cacher les sections dynamiques au chargement
-            decisionTreeContainer.classList.add('hidden');
-            chatContainer.classList.add('hidden');
-            infoPopup.classList.add('hidden');
-
-            // Ajouter les écouteurs sur les cartes
-            const cards = document.querySelectorAll('.card');
-            cards.forEach(card => {
-                card.addEventListener('click', handleCardClick);
-            });
-
-             // Ajouter l'écouteur pour la soumission du formulaire d'escalade
-            ticketForm.addEventListener('submit', handleTicketSubmit);
-
-             // Ajouter l'écouteur pour Entrée dans le chat input
-            userInput.addEventListener('keypress', handleInputKeypress);
-
-             // Ajuster la hauteur initiale du textarea
-             autoGrow(userInput);
-        }
-
-        // --- Gestion Clic sur les Cartes ---
-        function handleCardClick(event) {
-            const card = event.currentTarget;
-            const action = card.dataset.action;
-
-            switch (action) {
-                case 'start-chat-aid':
-                    startDecisionTree('aid');
-                    break;
-                case 'start-chat-direct':
-                    startDecisionTree('direct');
-                    break;
-                case 'show-docs':
-                    showInfoPopup('docs');
-                    break;
-                case 'show-future':
-                    showInfoPopup('future');
-                    break;
-                default:
-                    console.warn('Action de carte inconnue:', action);
+        // Arbres de décision prédéfinis pour le mode assistance
+        const decisionsTree = {
+            // Premier message d'accueil
+            welcome: {
+                message: "Bonjour ! Je suis ACW, votre Assistant Citoyen Wallon. Pour mieux comprendre votre besoin, j'aimerais vous poser quelques questions. Quel type de démarche administrative vous intéresse ?",
+                options: [
+                    { id: "urbanisme", text: "Urbanisme et Aménagement" },
+                    { id: "services", text: "Services Municipaux" },
+                    { id: "evenements", text: "Événements et Culture" },
+                    { id: "environnement", text: "Environnement" },
+                    { id: "transport", text: "Transport et Mobilité" },
+                    { id: "autre", text: "Autre" }
+                ]
+            },
+            // Sous-arbre pour les problèmes de voirie
+            voirie: {
+                message: "Concernant les problèmes de voirie, de quoi s'agit-il ?",
+                options: [
+                    { id: "trottoir", text: "Trottoir abîmé" },
+                    { id: "route", text: "Route dégradée" },
+                    { id: "signalisation", text: "Signalisation manquante" },
+                    { id: "autre_voirie", text: "Autre problème de voirie" }
+                ]
+            },
+            
+            // Services Municipaux
+            services: {
+                message: "Concernant les services municipaux, quel service vous intéresse ?",
+                options: [
+                    { id: "dechets", text: "Gestion des déchets" },
+                    { id: "eclairage", text: "Éclairage public" },
+                    { id: "police", text: "Service de police" },
+                    { id: "administration", text: "Administration" }
+                ]
+            },
+            
+            // Événements et Culture
+            evenements: {
+                message: "Concernant les événements et la culture, quelle est votre demande ?",
+                options: [
+                    { id: "organisation", text: "Demande d'organisation" },
+                    { id: "programmation", text: "Programmation locale" },
+                    { id: "infrastructures", text: "Infrastructures culturelles" },
+                    { id: "autre_event", text: "Autre demande culturelle" }
+                ]
+            },
+            
+            // Environnement
+            environnement: {
+                message: "Concernant l'environnement, quelle est votre demande ?",
+                options: [
+                    { id: "nid_poule", text: "Nid de poule" },
+                    { id: "decharge", text: "Décharge sauvage" },
+                    { id: "arbres", text: "Arbres dangereux" },
+                    { id: "bruit", text: "Pollution sonore" }
+                ]
+            },
+            
+            // Transport et Mobilité
+            transport: {
+                message: "Concernant le transport et la mobilité, précisez votre demande :",
+                options: [
+                    { id: "stationnement", text: "Stationnement" },
+                    { id: "velo", text: "Pistes cyclables" },
+                    { id: "commun", text: "Transports en commun" },
+                    { id: "circulation", text: "Circulation" }
+                ]
+            },
+            // Arbre pour l'urbanisme et aménagement
+            urbanisme: {
+                message: "Pour les questions d'urbanisme et d'aménagement, précisez votre demande :",
+                options: [
+                    { id: "voirie", text: "Problèmes de voirie" },
+                    { id: "projet_immo", text: "Projet immobilier" },
+                    { id: "travaux", text: "Travaux publics" },
+                    { id: "occupation", text: "Occupation du domaine public" },
+                    { id: "permis", text: "Permis et certificats" }
+                ]
+            },
+            // Sous-arbre pour les problèmes de voirie
+            voirie: {
+                message: "Concernant les problèmes de voirie, de quoi s'agit-il ?",
+                options: [
+                    { id: "nid_poule", text: "Nid de poule" },
+                    { id: "eclairage", text: "Éclairage public" },
+                    { id: "signalisation", text: "Signalisation" },
+                    { id: "autre_voirie", text: "Autre problème de voirie" }
+                ]
+            },
+            // Réponse pour les nids de poule
+            nid_poule: {
+                message: "Pour signaler un nid de poule, vous devez contacter directement votre administration communale. Voici la page qui explique la procédure à suivre: www.wallonie.be/fr/signalement-voirie\n\nAvez-vous besoin d'autres informations ?",
+                options: [
+                    { id: "retour_accueil", text: "Retour à l'accueil" },
+                    { id: "fin_conversation", text: "Non, merci" }
+                ],
+                isEndpoint: true
+            },
+            
+            // Catégories spécifiques - Permis et certificats
+            permis: {
+                message: "Concernant les permis et certificats, veuillez préciser :",
+                options: [
+                    { id: "permis_construire", text: "Permis de construire" },
+                    { id: "certificat_urbanisme", text: "Certificat d'urbanisme" },
+                    { id: "permis_demolir", text: "Permis de démolir" },
+                    { id: "autre_permis", text: "Autre précision" }
+                ]
+            },
+            
+            // Catégories spécifiques - Gestion des déchets
+            dechets: {
+                message: "Concernant la gestion des déchets, quelle est votre demande ?",
+                options: [
+                    { id: "ramassage", text: "Ramassage non effectué" },
+                    { id: "bac", text: "Bac cassé" },
+                    { id: "conteneur", text: "Demande de conteneur" },
+                    { id: "autre_dechet", text: "Autre précision" }
+                ]
+            },
+            
+            // Catégories spécifiques - Stationnement
+            stationnement: {
+                message: "Concernant le stationnement, quelle est votre demande ?",
+                options: [
+                    { id: "zone_bleue", text: "Zone bleue" },
+                    { id: "carte_resident", text: "Carte résident" },
+                    { id: "amende", text: "Amende contestée" },
+                    { id: "autre_stationnement", text: "Autre précision" }
+                ]
+            },
+            // Escalade pour projets nécessitant précision
+            precision_details: {
+                message: "Les projets immobiliers spécifiques nécessitent souvent une expertise personnalisée. Je vais vous mettre en relation avec un agent qui pourra étudier votre cas particulier.",
+                isEscalation: true
             }
-        }
+        };
 
-        // --- Gestion Popup Info ---
-        function showInfoPopup(type) {
-            let title = '';
-            let content = '';
-
-            if (type === 'docs') {
-                title = "Comment fonctionne l'Assistant ACW ?";
-                content = `
-                    <p>Cet assistant est conçu pour vous aider à naviguer dans les démarches administratives en Wallonie.</p>
-                    <p><strong>Comment ça marche ?</strong></p>
-                    <ul>
-                        <li>Il utilise une base de connaissances limitée à des documents officiels fournis par nos soins.</li>
-                        <li>Il ne peut PAS accéder à internet ou à des informations externes non validées.</li>
-                        <li>Quand vous posez une question, il cherche la réponse dans ses documents et cite ses sources.</li>
-                        <li>Il ne peut pas traiter vos données personnelles (sauf pour vous mettre en contact avec un agent si nécessaire et si vous remplissez le formulaire).</li>
-                        <li>Son objectif est de vous fournir une information fiable et de vous guider.</li>
-                    </ul>
-                    <p><strong>Aide à la rédaction :</strong> Si vous choisissez cette option, l'assistant vous posera d'abord des questions pour bien comprendre votre besoin avant de chercher une réponse.</p>
-                    <p><strong>Limites :</strong> L'assistant ne remplace pas un conseil juridique personnalisé et ne peut garantir l'exactitude absolue si les documents de base ne sont pas à jour.</p>
-                `;
-            } else if (type === 'future') {
-                title = "Fonctionnalités à Venir";
-                content = `
-                    <p>Nous travaillons continuellement à améliorer l'Assistant ACW !</p>
-                    <p><strong>Prochaines étapes envisagées :</strong></p>
-                    <ul>
-                        <li>Intégration de plus de démarches administratives.</li>
-                        <li>Amélioration de la compréhension des questions complexes.</li>
-                        <li>Possibilité de sauvegarder l'historique de conversation (optionnel).</li>
-                        <li>Connexion directe à certains services en ligne (après authentification sécurisée).</li>
-                        <li>Interface multilingue (DE).</li>
-                    </ul>
-                    <p>Vos retours sont précieux pour nous aider à prioriser les développements !</p>
-                `;
-            }
-
-            infoPopupTitle.textContent = title;
-            infoPopupBody.innerHTML = content; // Utiliser innerHTML car on a des balises HTML
-            infoPopup.classList.remove('hidden');
-        }
-
-        function hideInfoPopup() {
-            infoPopup.classList.add('hidden');
-        }
-
-        // --- Gestion Arbre Décisionnel (Simulation) ---
-        function startDecisionTree(mode) {
-            console.log('Starting decision tree with mode:', mode);
-            chatMode = mode; // Stocker le mode choisi
-            decisionTreeContext = {}; // Réinitialiser le contexte
-            cardContainer.classList.add('hidden');
-            decisionTreeContainer.classList.remove('hidden');
-            displayDecisionStep(1); // Afficher la première question
-        }
-
-        // Fonction pour afficher un message dans le chatbox
-        function displayMessage(text, senderClass) {
-            const messageDiv = document.createElement('div');
-            // Utilisation de classList pour ajouter plusieurs classes
-            messageDiv.classList.add('message', senderClass);
-            // Utiliser textContent pour éviter les injections XSS simples
-            messageDiv.textContent = text;
-            if(chatbox) { // Ajouter une vérification si chatbox existe
-            chatbox.appendChild(messageDiv);
-            // Vider le conteneur 'thinking' s'il existe
-            clearThinking(); // Assure-toi que clearThinking est aussi définie
-            scrollToBottom(); // Assure-toi que scrollToBottom est aussi définie
+        // Fonction pour ouvrir le chat dans un mode spécifique
+        function openChat(mode) {
+            currentChatMode = mode;
+            chatbox.innerHTML = ''; // Vider les messages précédents
+            chatInterface.style.display = 'flex';
+            chatInterface.classList.add('visible');
+            overlay.style.display = 'block';
+            setTimeout(() => overlay.classList.add('visible'), 50);
+            
+            if (mode === 'aid') {
+                // Mode d'aide à la rédaction avec arbre décisionnel et options cliquables
+                displayMessage(decisionsTree.welcome.message, 'assistant-message', decisionsTree.welcome.options);
             } else {
-            console.error("ERREUR: Element chatbox non trouvé ! Impossible d'afficher le message.");
+                // Mode direct
+                displayMessage("Bonjour ! Je suis ACW, votre assistant pour les démarches administratives en Wallonie. Comment puis-je vous aider aujourd'hui ?", 'assistant-message');
+            }
+            
+            userInput.focus();
+        }
+
+        // Fonction pour fermer le chat
+        function closeChat() {
+            overlay.classList.remove('visible');
+            chatInterface.classList.remove('visible');
+            
+            setTimeout(() => {
+                chatInterface.style.display = 'none';
+                overlay.style.display = 'none';
+                hideEscalationForm();
+            }, 300);
+        }
+
+        // Fonction pour montrer la documentation (à implémenter)
+        function showDocumentation() {
+            alert("La documentation sera disponible prochainement.");
+            // Implémentation future: ouvrir une page de documentation ou afficher un modal
+        }
+
+        // Fonction pour faire grandir/rétrécir le textarea
+        function autoGrow(element) {
+            element.style.height = 'auto';
+            element.style.height = (element.scrollHeight) + 'px';
+        }
+
+        // Fonction pour scroller en bas du chatbox
+        function scrollToBottom() {
+            setTimeout(() => {
+                chatbox.scrollTop = chatbox.scrollHeight;
+            }, 50);
+        }
+
+        // Fonction pour traiter le choix d'option dans l'arbre décisionnel
+        function processOptionChoice(optionId) {
+            // Si l'option existe dans l'arbre décisionnel
+            if (optionId in decisionsTree) {
+                const nextNode = decisionsTree[optionId];
+                
+                // Si c'est un point final qui nécessite une escalade
+                if (nextNode.isEscalation) {
+                    displayMessage(nextNode.message, 'assistant-message');
+                    showEscalationForm({
+                        sujet: "Demande de précision pour projet immobilier",
+                        description_probleme: "L'utilisateur souhaite des précisions sur un projet immobilier spécifique."
+                    });
+                    return;
+                }
+                
+                // Si c'est un point où l'IA doit prendre le relais
+                if (nextNode.isQuestion) {
+                    displayMessage(nextNode.message, 'assistant-message');
+                    return;
+                }
+                
+                // Si c'est un endpoint (info finale)
+                if (nextNode.isEndpoint) {
+                    displayMessage(nextNode.message, 'assistant-message', nextNode.options);
+                    return;
+                }
+                
+                // Sinon, afficher le message suivant avec ses options
+                displayMessage(nextNode.message, 'assistant-message', nextNode.options);
+            } 
+            // Gérer les cas spéciaux
+            else if (optionId === "retour_accueil") {
+                displayMessage("Que souhaitez-vous faire maintenant ?", 'assistant-message', decisionsTree.welcome.options);
+            }
+            else if (optionId === "fin_conversation") {
+                displayMessage("Merci d'avoir utilisé ACW. N'hésitez pas si vous avez d'autres questions!", 'assistant-message');
+            }
+            // Si l'option n'est pas reconnue, passer en mode assistant normal
+            else {
+                sendMessageToBackend("Je souhaite des informations sur " + optionId);
             }
         }
 
-        let thinkingDiv = null; // Garder une référence (ou ta propre implémentation)
+        // Fonction pour traiter les entrées utilisateur textuelles dans l'arbre décisionnel
+        function processDecisionTree(userInput) {
+            const inputLower = userInput.toLowerCase();
+            
+            // Essayer de matcher l'entrée utilisateur avec des mots-clés
+            if (inputLower.includes('prime') || inputLower.includes('aide') || inputLower.includes('financ')) {
+                displayMessage(decisionsTree.primes.message, 'assistant-message', decisionsTree.primes.options);
+            } 
+            else if (inputLower.includes('identité') || inputLower.includes('carte') || inputLower.includes('passeport')) {
+                displayMessage(decisionsTree.identite.message, 'assistant-message', decisionsTree.identite.options);
+            }
+            else if (inputLower.includes('urbanisme') || inputLower.includes('voirie') || inputLower.includes('construction')) {
+                displayMessage(decisionsTree.urbanisme.message, 'assistant-message', decisionsTree.urbanisme.options);
+            }
+            else if (inputLower.includes('nid') || inputLower.includes('poule') || inputLower.includes('trou')) {
+                displayMessage(decisionsTree.nid_poule.message, 'assistant-message', decisionsTree.nid_poule.options);
+            }
+            else if (inputLower.includes('permis') || inputLower.includes('certificat')) {
+                displayMessage(decisionsTree.permis.message, 'assistant-message', decisionsTree.permis.options);
+            }
+            // Si l'entrée ne correspond à aucune option connue, passer en mode assistant normal
+            else {
+                sendMessageToBackend(userInput);
+            }
+        }
+
+        // Fonction pour afficher un message dans le chatbox avec options cliquables
+        function displayMessage(text, senderClass, options = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', senderClass);
+            
+            // Si c'est un message texte standard
+            if (!options) {
+                messageDiv.textContent = text;
+            } 
+            // Si c'est un message avec options cliquables
+            else {
+                // Ajouter d'abord le texte du message
+                const textParagraph = document.createElement('p');
+                textParagraph.textContent = text;
+                messageDiv.appendChild(textParagraph);
+                
+                // Ajouter les options cliquables
+                const optionsList = document.createElement('div');
+                optionsList.classList.add('chat-options');
+                
+                options.forEach((option, index) => {
+                    const optionButton = document.createElement('button');
+                    optionButton.classList.add('option-button');
+                    optionButton.textContent = option.text;
+                    optionButton.dataset.optionId = option.id;
+                    optionButton.onclick = function() {
+                        // Afficher l'option choisie comme message utilisateur
+                        displayMessage(option.text, 'user-message');
+                        // Traiter le choix
+                        processOptionChoice(option.id);
+                    };
+                    optionsList.appendChild(optionButton);
+                });
+                
+                messageDiv.appendChild(optionsList);
+            }
+            
+            chatbox.appendChild(messageDiv);
+            clearThinking();
+            scrollToBottom();
+        }
+
+        // Fonction pour afficher/cacher l'indicateur "Pensée..."
+        let thinkingDiv = null;
+        function displayThinking(show) {
+            if (show && !thinkingDiv) {
+                thinkingDiv = document.createElement('div');
+                thinkingDiv.classList.add('thinking');
+                thinkingDiv.textContent = 'ACW réfléchit...';
+                chatbox.appendChild(thinkingDiv);
+                scrollToBottom();
+            } else if (!show && thinkingDiv) {
+                clearThinking();
+            }
+        }
+        
         function clearThinking() {
             if(thinkingDiv) {
                 thinkingDiv.remove();
@@ -396,112 +1207,30 @@
             }
         }
 
-        function scrollToBottom() {
-            // Ajout d'un petit délai pour laisser le temps au DOM de se mettre à jour
-            if(chatbox){
-                setTimeout(() => {
-                    chatbox.scrollTop = chatbox.scrollHeight;
-                }, 50);
-            }
+        // Fonction pour afficher le formulaire d'escalade
+        function showEscalationForm(prefillData = {}) {
+            ticketForm.elements['sujet'].value = prefillData.sujet || '';
+            ticketForm.elements['description_probleme'].value = prefillData.description_probleme || '';
+            ticketForm.elements['nom'].value = '';
+            ticketForm.elements['contact_email'].value = '';
+            ticketForm.elements['commune'].value = '';
+            formErrorDiv.style.display = 'none';
+            formErrorDiv.textContent = '';
+
+            escalationFormDiv.style.display = 'block';
+            scrollToBottom();
         }
 
-        // Et la fonction displayThinking est aussi nécessaire si tu l'utilises
-        function displayThinking(show) {
-            if (show && !thinkingDiv) {
-                // ... (code pour créer et afficher thinkingDiv) ...
-                thinkingDiv = document.createElement('div'); // Exemple simplifié
-                thinkingDiv.classList.add('thinking');
-                thinkingDiv.textContent = 'ACW réfléchit...';
-                if(chatbox) chatbox.appendChild(thinkingDiv);
-                scrollToBottom();
-            } else if (!show && thinkingDiv) {
-                clearThinking();
-            }
+        // Fonction pour cacher le formulaire d'escalade
+        function hideEscalationForm() {
+            escalationFormDiv.style.display = 'none';
+            ticketForm.reset();
+            formErrorDiv.style.display = 'none';
+            document.getElementById('input-area').style.display = 'flex';
+            userInput.focus();
         }
 
-
-
-        function displayDecisionStep(stepNumber) {
-            let question = '';
-            let buttonsHtml = '';
-
-            switch (stepNumber) {
-                case 1:
-                    question = "Quel est le domaine principal de votre demande ?";
-                    buttonsHtml = `
-                        <button onclick="handleDecisionChoice(1, 'Logement')">Logement / Primes</button>
-                        <button onclick="handleDecisionChoice(1, 'Identité')">Identité / État Civil</button>
-                        <button onclick="handleDecisionChoice(1, 'Urbanisme')">Urbanisme / Permis</button>
-                        <button onclick="handleDecisionChoice(1, 'Autre')">Autre / Je ne sais pas</button>
-                    `;
-                    break;
-                case 2:
-                    // Question dépendante du choix précédent (simplifié ici)
-                    const domaine = decisionTreeContext.domaine || 'votre démarche';
-                    question = `Concernant "${domaine}", s'agit-il d'une nouvelle demande ou d'un suivi ?`;
-                    buttonsHtml = `
-                        <button onclick="handleDecisionChoice(2, 'Nouvelle demande')">Nouvelle demande</button>
-                        <button onclick="handleDecisionChoice(2, 'Suivi de dossier')">Suivi de dossier</button>
-                        <button onclick="handleDecisionChoice(2, 'Information générale')">Information générale</button>
-                    `;
-                    break;
-                // Ajouter case 3 si besoin d'une 3ème question
-                default:
-                    // Fin de l'arbre
-                    showChatInterface();
-                    return; // Sortir de la fonction
-            }
-
-            decisionTreeContainer.innerHTML = `
-                <h3>${question}</h3>
-                <div class="decision-buttons">${buttonsHtml}</div>
-            `;
-        }
-
-        function handleDecisionChoice(stepNumber, choice) {
-            console.log(`Step ${stepNumber}, Choice: ${choice}`);
-            // Stocker le choix (simplifié)
-            if (stepNumber === 1) decisionTreeContext.domaine = choice;
-            if (stepNumber === 2) decisionTreeContext.typeDemande = choice;
-
-            // Passer à l'étape suivante ou afficher le chat
-            const nextStep = stepNumber + 1;
-            if (nextStep <= 2) { // Mettre <= 3 si 3 questions, etc.
-                displayDecisionStep(nextStep);
-            } else {
-                showChatInterface(); // Fin de l'arbre
-            }
-        }
-
-        // --- Affichage Interface Chat ---
-        function showChatInterface() {
-            console.log('Showing chat interface with mode:', chatMode);
-            console.log('Decision context:', decisionTreeContext);
-
-            decisionTreeContainer.classList.add('hidden');
-            cardContainer.classList.add('hidden'); // Assurer que les cartes sont cachées
-            infoPopup.classList.add('hidden'); // Cacher popup si ouvert
-
-            // Construire un message initial basé sur les choix (optionnel)
-            let initialMessage = "Bonjour ! Comment puis-je vous aider ?";
-            if (decisionTreeContext.domaine && decisionTreeContext.typeDemande) {
-                 initialMessage = `Bonjour ! Vous avez indiqué être intéressé par '${decisionTreeContext.domaine}' concernant '${decisionTreeContext.typeDemande}'. Comment puis-je vous aider plus précisément ?`;
-            } else if (decisionTreeContext.domaine) {
-                 initialMessage = `Bonjour ! Vous avez indiqué être intéressé par '${decisionTreeContext.domaine}'. Quelle est votre question ?`;
-            }
-
-             // Vider le chatbox précédent s'il y en avait un
-             chatbox.innerHTML = '';
-             // Afficher le message initial de l'assistant
-             displayMessage(initialMessage, 'assistant-message');
-
-             // Afficher le conteneur de chat
-             chatContainer.classList.remove('hidden');
-             firstMessageSent = false; // Prêt pour le premier message utilisateur dans ce mode
-             userInput.focus();
-        }
-
-        // --- Logique d'envoi de message (modifiée pour le mode) ---
+        // Fonction principale pour envoyer un message
         async function sendMessage() {
             const query = userInput.value.trim();
             if (!query || isWaiting) return;
@@ -510,37 +1239,50 @@
             sendButton.disabled = true;
             userInput.disabled = true;
             displayMessage(query, 'user-message');
-            const currentQuery = query; // Sauvegarder la query pour l'envoyer
             userInput.value = '';
             autoGrow(userInput);
-            displayThinking(true);
 
-            const payload = { query: currentQuery };
-            // Ajouter le mode seulement pour le premier message envoyé après avoir choisi le mode
-            if (!firstMessageSent) {
-                payload.mode = chatMode;
-                firstMessageSent = true; // Ne plus envoyer le mode ensuite
-                console.log("Sending first message with mode:", chatMode);
+            // Si on est en mode aide à la rédaction et qu'on n'a pas encore finalisé l'arbre décisionnel
+            if (currentChatMode === 'aid' && !chatbox.innerText.includes("Je vais maintenant rechercher les informations")) {
+                processDecisionTree(query);
+                isWaiting = false;
+                sendButton.disabled = false;
+                userInput.disabled = false;
+                userInput.focus();
+                return;
             }
+
+            // Sinon, envoyer au backend
+            await sendMessageToBackend(query);
+        }
+
+        // Fonction pour envoyer un message au backend
+        async function sendMessageToBackend(query) {
+            displayThinking(true);
 
             try {
                 const response = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload) // Envoyer le payload avec/sans mode
+                    body: JSON.stringify({ 
+                        query: query,
+                        mode: currentChatMode
+                    })
                 });
 
                 if (!response.ok) {
                     let errorDetail = `Erreur HTTP ${response.status}`;
-                    try { const errorData = await response.json(); errorDetail = errorData.detail || errorDetail; } catch (e) {}
+                    try { 
+                        const errorData = await response.json(); 
+                        errorDetail = errorData.detail || errorDetail; 
+                    } catch (e) {}
                     throw new Error(errorDetail);
                 }
 
                 const data = await response.json();
-                clearThinking(); // Enlever "thinking" avant d'afficher la réponse
 
-                if (data.response) {
-                   displayMessage(data.response, 'assistant-message');
+                if(data.response) {
+                    displayMessage(data.response, 'assistant-message');
                 }
 
                 if (data.action === "show_escalation_form") {
@@ -548,29 +1290,29 @@
                 }
 
             } catch (error) {
-                 console.error('Erreur dans sendMessage:', error);
-                 clearThinking();
-                 displayMessage(`Désolé, une erreur est survenue : ${error.message}`, 'assistant-message error-message');
+                console.error('Erreur dans sendMessage:', error);
+                clearThinking();
+                displayMessage(`Désolé, une erreur est survenue : ${error.message}`, 'assistant-message error-message');
             } finally {
                 isWaiting = false;
                 sendButton.disabled = false;
                 userInput.disabled = false;
                 if (escalationFormDiv.style.display === 'none') {
-                   userInput.focus();
+                    userInput.focus();
                 }
-                scrollToBottom(); // Assurer le scroll après réponse/erreur
             }
         }
 
-        // --- Gestion Soumission Formulaire Escalade (inchangée par rapport à avant) ---
-        async function handleTicketSubmit(event) {
+        // Gérer la soumission du formulaire d'escalade
+        ticketForm.addEventListener('submit', async function(event) {
             event.preventDefault();
             formErrorDiv.style.display = 'none';
             formErrorDiv.textContent = '';
+            
             if (!ticketForm.checkValidity()) {
-                 formErrorDiv.textContent = "Veuillez remplir tous les champs requis correctement.";
-                 formErrorDiv.style.display = 'block';
-                 return;
+                formErrorDiv.textContent = "Veuillez remplir tous les champs requis correctement.";
+                formErrorDiv.style.display = 'block';
+                return;
             }
 
             submitTicketButton.disabled = true;
@@ -587,36 +1329,35 @@
                 });
 
                 if (!response.ok) {
-                     let errorDetail = `Erreur HTTP ${response.status}`;
-                     try { const errorData = await response.json(); errorDetail = errorData.detail || errorDetail; } catch (e) {}
-                     throw new Error(errorDetail);
+                    let errorDetail = `Erreur HTTP ${response.status}`;
+                    try { const errorData = await response.json(); errorDetail = errorData.detail || errorDetail; } catch (e) {}
+                    throw new Error(errorDetail);
                 }
+
                 const result = await response.json();
+                displayMessage(result.message, 'assistant-message');
                 hideEscalationForm();
-                displayMessage(result.message, 'assistant-message'); // Afficher confirmation dans le chat
 
             } catch (error) {
-                 console.error('Erreur lors de la soumission du ticket:', error);
-                 formErrorDiv.textContent = `Erreur : ${error.message}`;
-                 formErrorDiv.style.display = 'block';
+                console.error('Erreur lors de la soumission du ticket:', error);
+                formErrorDiv.textContent = `Erreur lors de l'envoi : ${error.message}`;
+                formErrorDiv.style.display = 'block';
             } finally {
-                 submitTicketButton.disabled = false;
-                 submitTicketButton.textContent = 'Envoyer la demande';
+                submitTicketButton.disabled = false;
+                submitTicketButton.textContent = 'Envoyer la demande';
             }
-        }
+        });
 
-         // --- Gestion Touche Entrée (inchangée) ---
-         function handleInputKeypress(e) {
-             if (e.key === 'Enter' && !e.shiftKey) {
-                 e.preventDefault();
-                 sendMessage();
-             }
-         }
+        // Permettre l'envoi avec Entrée (sauf si Shift est pressé)
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
 
-         // --- Gestion Hauteur Textarea (inchangée) ---
-         function autoGrow(element) { /* ... comme avant ... */ }
-
+        // Ajuster la hauteur initiale du textarea
+        autoGrow(userInput);
     </script>
-
 </body>
 </html>
