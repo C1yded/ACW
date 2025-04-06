@@ -4,6 +4,7 @@ import logging
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from cachetools import cached, TTLCache
+import re
 import json # Pour une éventuelle sérialisation plus robuste
 
 # Configuration du logging
@@ -73,45 +74,99 @@ def get_vectorizer_and_matrix():
 
 # --- Fonctions Outils (appelables par FastAPI via l'orchestration LLM) ---
 
-def search_relevant_documents(query: str) -> str:
+def search_relevant_documents(query: str, max_snippets_per_doc: int = 2, max_total_snippets: int = 5) -> str:
     """
     Recherche les documents pertinents pour une requête en utilisant TF-IDF.
-    Retourne une chaîne JSON d'une liste de dictionnaires [{'name': doc_name, 'score': similarity_score}]
-    triée par pertinence, ou un message d'erreur/informatif.
+    Extrait quelques snippets (phrases) pertinents de chaque document trouvé.
+    Retourne une chaîne JSON d'une liste de résultats, chaque résultat contenant
+    {'name': doc_name, 'score': score, 'snippets': [liste_de_phrases_pertinentes]}.
     """
-    logger.info(f"Recherche de documents pour la requête : '{query}'")
+    logger.info(f"Recherche de documents et snippets pour la requête : '{query}'")
     vectorizer, tfidf_matrix, doc_names = get_vectorizer_and_matrix()
 
     if not doc_names or vectorizer is None:
-        logger.warning("Recherche impossible : Vectoriseur non initialisé (aucun document?).")
+        logger.warning("Recherche RAG impossible : Vectoriseur non initialisé.")
         return json.dumps([{"message": "Le système de recherche n'est pas prêt (aucun document chargé)."}])
 
     try:
         query_vec = vectorizer.transform([query])
         similarities = cosine_similarity(query_vec, tfidf_matrix).flatten()
 
-        # Créer une liste de résultats avec scores
-        results = [
-            {"name": name, "score": float(score)}
-            for name, score in zip(doc_names, similarities)
+        # Créer une liste de documents avec scores
+        doc_scores = [
+            {"name": name, "score": float(score), "index": i}
+            for i, (name, score) in enumerate(zip(doc_names, similarities))
+            if score > 0.05 # Garder seulement ceux avec un score minimal
         ]
 
-        # Filtrer et trier
-        # Garder seulement les documents avec un score > seuil (ajuster si nécessaire)
-        relevant_docs = [doc for doc in results if doc['score'] > 0.05]
-        sorted_docs = sorted(relevant_docs, key=lambda x: x['score'], reverse=True)
+        # Trier par score décroissant
+        sorted_docs = sorted(doc_scores, key=lambda x: x['score'], reverse=True)
 
-        if not sorted_docs:
-            logger.info("Aucun document pertinent trouvé pour cette requête.")
-            return json.dumps([{"message": "Aucun document pertinent trouvé pour cette requête."}])
+        # Extraire les snippets pertinents des documents les mieux classés
+        results_with_snippets = []
+        total_snippets_collected = 0
+        documents_content_cache = load_documents() # Charger tous les documents (utilise le cache)
 
-        logger.info(f"Documents pertinents trouvés : {[d['name'] for d in sorted_docs]}")
-        # Retourner le résultat sous forme de chaîne JSON pour l'IA
-        return json.dumps(sorted_docs)
+        query_words = set(query.lower().split()) # Pour trouver les phrases contenant les mots clés
+
+        for doc in sorted_docs:
+            if total_snippets_collected >= max_total_snippets:
+                break # Limite totale de snippets atteinte
+
+            doc_name = doc['name']
+            content = documents_content_cache.get(doc_name, "")
+            if not content:
+                continue
+
+            # Découper en phrases (simple découpage par point, pourrait être amélioré)
+            sentences = re.split(r'(?<=[.!?])\s+', content)
+            relevant_snippets = []
+            snippets_found_in_doc = 0
+
+            for sentence in sentences:
+                if sentence and any(word in sentence.lower() for word in query_words):
+                    relevant_snippets.append(sentence.strip())
+                    snippets_found_in_doc += 1
+                    if snippets_found_in_doc >= max_snippets_per_doc:
+                        break # Limite de snippets par document atteinte
+
+            if relevant_snippets:
+                results_with_snippets.append({
+                    "name": doc_name,
+                    "score": doc['score'],
+                    "snippets": relevant_snippets
+                })
+                total_snippets_collected += len(relevant_snippets)
+
+        if not results_with_snippets:
+            logger.info("Aucun snippet pertinent trouvé pour cette requête.")
+            # On peut quand même renvoyer les noms des docs les mieux classés si aucun snippet n'est trouvé
+            top_doc_names = [{"name": d["name"], "score": d["score"], "snippets": []} for d in sorted_docs[:3]]
+            if top_doc_names:
+                 return json.dumps([{"message": "Aucun extrait spécifique trouvé, mais les documents les plus pertinents sont :", "top_documents": top_doc_names}])
+            else:
+                 return json.dumps([{"message": "Aucun document ou extrait pertinent trouvé."}])
+
+
+        logger.info(f"{len(results_with_snippets)} documents avec snippets trouvés.")
+        return json.dumps(results_with_snippets)
 
     except Exception as e:
-        logger.error(f"Erreur pendant la recherche TF-IDF pour '{query}': {e}", exc_info=True)
-        return json.dumps([{"error": f"Erreur interne pendant la recherche: {e}"}])
+        logger.error(f"Erreur pendant la recherche RAG pour '{query}': {e}", exc_info=True)
+        return json.dumps([{"error": f"Erreur interne pendant la recherche RAG: {e}"}])
+
+
+def request_human_escalation(user_query: str, reason: str) -> str:
+    """
+    Signale au système qu'une escalade est nécessaire et que le formulaire
+    de contact doit être affiché à l'utilisateur.
+    Retourne un message simple indiquant l'action à venir.
+    """
+    logger.warning(f"ESCALADE DÉCLENCHÉE par l'IA pour la requête : '{user_query}'. Raison donnée par IA : '{reason}'")
+    # Le message retourné ici sera vu par l'IA mais c'est surtout le backend qui
+    # va intercepter cet appel d'outil pour envoyer un signal au frontend.
+    # On peut quand même retourner un message qui a du sens si l'IA devait le lire.
+    return json.dumps({"action": "display_escalation_form", "message": "Okay, je prépare le formulaire pour que vous puissiez détailler votre demande à un agent."})
 
 
 def get_document_content_by_name(document_name: str) -> str:

@@ -3,115 +3,620 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ACW Assistant (Mistral)</title>
+    <title>ACW - Assistant Citoyen Wallon</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
-        #chat-container { max-width: 800px; margin: auto; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 85vh; }
-        h1 { text-align: center; color: #00509e; margin-top: 15px; }
-        #chatbox { flex-grow: 1; overflow-y: auto; padding: 15px; border-bottom: 1px solid #eee; }
-        .message { margin-bottom: 15px; padding: 10px 15px; border-radius: 18px; max-width: 75%; line-height: 1.4; }
-        .user-message { background-color: #0078d4; color: white; margin-left: auto; border-bottom-right-radius: 5px; }
-        .assistant-message { background-color: #e1e1e1; color: #333; margin-right: auto; border-bottom-left-radius: 5px; white-space: pre-wrap; } /* préserve les retours à la ligne */
+        /* --- Styles Généraux --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f4f8; /* Fond bleu très clair */
+            color: #333;
+            display: flex;
+            flex-direction: column; /* Permet de centrer le contenu global */
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 1000px; /* Largeur max pour la page */
+            margin: auto;
+        }
+
+        h1.page-title {
+            text-align: center;
+            color: #003366; /* Bleu foncé */
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        /* --- Styles pour les Cartes --- */
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Grille responsive */
+            gap: 25px; /* Espace entre les cartes */
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between; /* Espace le contenu verticalement */
+            min-height: 220px; /* Hauteur minimale pour alignement */
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            color: #00509e; /* Bleu moyen */
+        }
+
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            color: #003366;
+        }
+
+        .card p {
+            font-size: 0.95em;
+            color: #555;
+            flex-grow: 1; /* Permet à la description de prendre de la place */
+            margin-bottom: 15px;
+        }
+
+        /* --- Styles Arbre Décisionnel --- */
+        .decision-tree-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .decision-tree-container h3 { color: #003366; margin-bottom: 20px; }
+        .decision-buttons button {
+            background-color: #0078d4;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            margin: 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+        }
+        .decision-buttons button:hover { background-color: #005a9e; }
+
+        /* --- Styles Chat (initialement cachés) --- */
+        .chat-container {
+            width: 100%;
+            max-width: 800px; /* Peut être différent de page-container si besoin */
+            height: 80vh;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin: auto; /* Centrer le chat une fois affiché */
+        }
+        /* Reprendre les styles .chatbox, .message, .input-area, etc. de la version précédente */
+        #chatbox { flex-grow: 1; overflow-y: auto; padding: 15px 20px; border-bottom: 1px solid #eee; scroll-behavior: smooth; }
+        .message { margin-bottom: 15px; padding: 10px 15px; border-radius: 18px; max-width: 80%; line-height: 1.4; word-wrap: break-word; }
+        .user-message { background-color: #0078d4; color: white; margin-left: auto; border-bottom-right-radius: 5px; clear: both; float: right; }
+        .assistant-message { background-color: #f0f0f0; color: #333; margin-right: auto; border-bottom-left-radius: 5px; clear: both; float: left; white-space: pre-wrap; }
         .error-message { background-color: #fdecea; color: #a80000; border: 1px solid #f4a09f; }
-        #input-area { display: flex; padding: 15px; border-top: 1px solid #eee; background-color: #f9f9f9; }
-        #userInput { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; margin-right: 10px; font-size: 1rem; }
-        button { padding: 10px 20px; background-color: #0078d4; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 1rem; transition: background-color 0.2s ease; }
-        button:hover { background-color: #005a9e; }
-        button:disabled { background-color: #b0b0b0; cursor: not-allowed; }
-        .thinking { font-style: italic; color: #777; text-align: center; padding: 10px; }
+        .thinking { font-style: italic; color: #777; text-align: center; padding: 10px; clear: both; }
+        #input-area { display: flex; padding: 15px; border-top: 1px solid #eee; background-color: #f9f9f9; align-items: center; }
+        #userInput { flex-grow: 1; padding: 12px 15px; border: 1px solid #ccc; border-radius: 20px; margin-right: 10px; font-size: 1rem; line-height: 1.2; resize: none; overflow-y: hidden; min-height: 20px; max-height: 100px; }
+        #sendButton { padding: 12px 20px; background-color: #0078d4; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 1rem; transition: background-color 0.2s ease; flex-shrink: 0; }
+        #sendButton:hover { background-color: #005a9e; }
+        #sendButton:disabled { background-color: #b0b0b0; cursor: not-allowed; }
+        /* Reprendre les styles #escalationForm de la version précédente */
+        #escalationForm { border-top: 1px solid #eee; padding: 20px; margin-top: 10px; background-color: #f9f9f9; display: none; max-height: 70vh; overflow-y: auto; }
+        #escalationForm h2 { margin-top: 0; color: #00509e; }
+        #escalationForm label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; }
+        #escalationForm input[type=text], #escalationForm input[type=email], #escalationForm textarea { width: calc(100% - 24px); padding: 10px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; box-sizing: border-box; }
+        #escalationForm textarea { min-height: 80px; resize: vertical; }
+        #escalationForm button { margin-top: 10px; padding: 10px 15px; font-size: 0.95rem; }
+        .form-error { color: #d8000c; background-color: #ffdddd; border: 1px solid #fbc7c7; padding: 8px; margin-top: 10px; border-radius: 4px; font-size: 0.9em; }
+        .form-buttons button { margin-right: 10px; }
+
+
+        /* --- Styles Popup Info --- */
+        .info-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* Au-dessus de tout */
+        }
+        .info-popup-content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 80%;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .info-popup-content h2 { margin-top: 0; color: #003366; }
+        .info-popup-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.8em;
+            line-height: 1;
+            cursor: pointer;
+            color: #888;
+            border: none;
+            background: none;
+        }
+        .info-popup-close:hover { color: #333; }
+
+        /* Classe utilitaire pour cacher/afficher */
+        .hidden { display: none; }
+
     </style>
 </head>
 <body>
-    <div id="chat-container">
-        <h1>Assistant Citoyen Wallon (ACW)</h1>
-        <div id="chatbox">
-            <div class="message assistant-message">Bonjour ! Je suis ACW, votre assistant pour les démarches administratives en Wallonie. Comment puis-je vous aider aujourd'hui ?</div>
-        </div>
-        <div id="input-area">
-            <input type="text" id="userInput" placeholder="Posez votre question ici..." autocomplete="off" aria-label="Votre question">
-            <button id="sendButton" onclick="sendMessage()">Envoyer</button>
-        </div>
-    </div>
 
-    <script>
+    <div class="page-container">
+        <h1 class="page-title">ACW - Assistant Citoyen Wallon</h1>
+
+        <div class="card-container" id="card-container">
+            <div class="card" data-action="start-chat-aid">
+                <div class="card-icon">✍️</div>
+                <h2>Aide à la Rédaction</h2>
+                <p>Besoin d'aide pour formuler votre question ou votre demande ? L'assistant vous guidera pas à pas.</p>
+                </div>
+
+            <div class="card" data-action="start-chat-direct">
+                <div class="card-icon">💬</div>
+                <h2>Accès Direct</h2>
+                <p>Vous savez ce que vous cherchez ? Posez directement votre question à l'assistant.</p>
+            </div>
+
+            <div class="card" data-action="show-docs">
+                <div class="card-icon">ℹ️</div>
+                <h2>Comment ça marche ?</h2>
+                <p>Comprendre le fonctionnement de l'assistant, ses capacités et ses limites.</p>
+            </div>
+
+            <div class="card" data-action="show-future">
+                <div class="card-icon">🚀</div>
+                <h2>À Venir</h2>
+                <p>Découvrez les prochaines améliorations et nouvelles fonctionnalités prévues pour l'assistant.</p>
+            </div>
+        </div>
+        <div class="decision-tree-container hidden" id="decision-tree-container">
+            </div>
+        <div class="chat-container hidden" id="chat-container">
+            <div id="chatbox" role="log" aria-live="polite">
+                </div>
+
+            <div id="escalationForm">
+                 <h2>Formulaire de demande d'assistance</h2>
+                 <p>Veuillez compléter les informations ci-dessous...</p>
+                 <form id="ticketForm" novalidate>
+                    <div><label for="nom">Nom complet :</label><input type="text" id="nom" name="nom" required minlength="2"></div>
+                    <div><label for="contact_email">Adresse Email :</label><input type="email" id="contact_email" name="contact_email" required></div>
+                    <div><label for="commune">Commune :</label><input type="text" id="commune" name="commune" required minlength="2"></div>
+                    <div><label for="sujet">Sujet :</label><input type="text" id="sujet" name="sujet" required minlength="5"></div>
+                    <div><label for="description_probleme">Description :</label><textarea id="description_probleme" name="description_probleme" required minlength="10"></textarea></div>
+                    <div id="formError" class="form-error" style="display: none;"></div>
+                    <div class="form-buttons">
+                        <button type="submit" id="submitTicketButton">Envoyer la demande</button>
+                        <button type="button" onclick="hideEscalationForm()" style="background-color: grey;">Annuler</button>
+                    </div>
+                 </form>
+            </div>
+
+            <div id="input-area">
+                <textarea id="userInput" placeholder="Posez votre question ici..." aria-label="Votre question" rows="1" oninput="autoGrow(this)"></textarea>
+                <button id="sendButton" onclick="sendMessage()">Envoyer</button>
+            </div>
+        </div>
+        <div class="info-popup-overlay hidden" id="info-popup">
+            <div class="info-popup-content">
+                <button class="info-popup-close" onclick="hideInfoPopup()" aria-label="Fermer">&times;</button>
+                <h2 id="info-popup-title"></h2>
+                <div id="info-popup-body"></div>
+            </div>
+        </div>
+        </div> <script>
+        // Références DOM globales
+        const pageContainer = document.querySelector('.page-container');
+        const cardContainer = document.getElementById('card-container');
+        const decisionTreeContainer = document.getElementById('decision-tree-container');
+        const chatContainer = document.getElementById('chat-container');
         const chatbox = document.getElementById('chatbox');
         const userInput = document.getElementById('userInput');
         const sendButton = document.getElementById('sendButton');
-        let isWaiting = false; // Pour éviter les envois multiples
+        const escalationFormDiv = document.getElementById('escalationForm');
+        const ticketForm = document.getElementById('ticketForm');
+        const submitTicketButton = document.getElementById('submitTicketButton');
+        const formErrorDiv = document.getElementById('formError');
+        const infoPopup = document.getElementById('info-popup');
+        const infoPopupTitle = document.getElementById('info-popup-title');
+        const infoPopupBody = document.getElementById('info-popup-body');
 
-        function displayMessage(text, sender) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', `${sender}-message`);
-            messageDiv.textContent = text; // Utilise textContent pour la sécurité
-            chatbox.appendChild(messageDiv);
-            chatbox.scrollTop = chatbox.scrollHeight; // Scroll auto
+        // Variables d'état
+        let isWaiting = false;
+        let chatMode = 'direct'; // Mode par défaut si arbre sauté ('direct' ou 'aid')
+        let firstMessageSent = false;
+        let decisionTreeContext = {}; // Pour stocker les choix de l'arbre
+
+        // --- Initialisation ---
+        document.addEventListener('DOMContentLoaded', init);
+
+        function init() {
+            // Cacher les sections dynamiques au chargement
+            decisionTreeContainer.classList.add('hidden');
+            chatContainer.classList.add('hidden');
+            infoPopup.classList.add('hidden');
+
+            // Ajouter les écouteurs sur les cartes
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('click', handleCardClick);
+            });
+
+             // Ajouter l'écouteur pour la soumission du formulaire d'escalade
+            ticketForm.addEventListener('submit', handleTicketSubmit);
+
+             // Ajouter l'écouteur pour Entrée dans le chat input
+            userInput.addEventListener('keypress', handleInputKeypress);
+
+             // Ajuster la hauteur initiale du textarea
+             autoGrow(userInput);
         }
 
-        function displayThinking(show) {
-            let thinkingDiv = document.getElementById('thinking-indicator');
-            if (show && !thinkingDiv) {
-                thinkingDiv = document.createElement('div');
-                thinkingDiv.id = 'thinking-indicator';
-                thinkingDiv.classList.add('thinking');
-                thinkingDiv.textContent = 'ACW réfléchit...';
-                chatbox.appendChild(thinkingDiv);
-                chatbox.scrollTop = chatbox.scrollHeight;
-            } else if (!show && thinkingDiv) {
-                thinkingDiv.remove();
+        // --- Gestion Clic sur les Cartes ---
+        function handleCardClick(event) {
+            const card = event.currentTarget;
+            const action = card.dataset.action;
+
+            switch (action) {
+                case 'start-chat-aid':
+                    startDecisionTree('aid');
+                    break;
+                case 'start-chat-direct':
+                    startDecisionTree('direct');
+                    break;
+                case 'show-docs':
+                    showInfoPopup('docs');
+                    break;
+                case 'show-future':
+                    showInfoPopup('future');
+                    break;
+                default:
+                    console.warn('Action de carte inconnue:', action);
             }
         }
 
+        // --- Gestion Popup Info ---
+        function showInfoPopup(type) {
+            let title = '';
+            let content = '';
+
+            if (type === 'docs') {
+                title = "Comment fonctionne l'Assistant ACW ?";
+                content = `
+                    <p>Cet assistant est conçu pour vous aider à naviguer dans les démarches administratives en Wallonie.</p>
+                    <p><strong>Comment ça marche ?</strong></p>
+                    <ul>
+                        <li>Il utilise une base de connaissances limitée à des documents officiels fournis par nos soins.</li>
+                        <li>Il ne peut PAS accéder à internet ou à des informations externes non validées.</li>
+                        <li>Quand vous posez une question, il cherche la réponse dans ses documents et cite ses sources.</li>
+                        <li>Il ne peut pas traiter vos données personnelles (sauf pour vous mettre en contact avec un agent si nécessaire et si vous remplissez le formulaire).</li>
+                        <li>Son objectif est de vous fournir une information fiable et de vous guider.</li>
+                    </ul>
+                    <p><strong>Aide à la rédaction :</strong> Si vous choisissez cette option, l'assistant vous posera d'abord des questions pour bien comprendre votre besoin avant de chercher une réponse.</p>
+                    <p><strong>Limites :</strong> L'assistant ne remplace pas un conseil juridique personnalisé et ne peut garantir l'exactitude absolue si les documents de base ne sont pas à jour.</p>
+                `;
+            } else if (type === 'future') {
+                title = "Fonctionnalités à Venir";
+                content = `
+                    <p>Nous travaillons continuellement à améliorer l'Assistant ACW !</p>
+                    <p><strong>Prochaines étapes envisagées :</strong></p>
+                    <ul>
+                        <li>Intégration de plus de démarches administratives.</li>
+                        <li>Amélioration de la compréhension des questions complexes.</li>
+                        <li>Possibilité de sauvegarder l'historique de conversation (optionnel).</li>
+                        <li>Connexion directe à certains services en ligne (après authentification sécurisée).</li>
+                        <li>Interface multilingue (DE).</li>
+                    </ul>
+                    <p>Vos retours sont précieux pour nous aider à prioriser les développements !</p>
+                `;
+            }
+
+            infoPopupTitle.textContent = title;
+            infoPopupBody.innerHTML = content; // Utiliser innerHTML car on a des balises HTML
+            infoPopup.classList.remove('hidden');
+        }
+
+        function hideInfoPopup() {
+            infoPopup.classList.add('hidden');
+        }
+
+        // --- Gestion Arbre Décisionnel (Simulation) ---
+        function startDecisionTree(mode) {
+            console.log('Starting decision tree with mode:', mode);
+            chatMode = mode; // Stocker le mode choisi
+            decisionTreeContext = {}; // Réinitialiser le contexte
+            cardContainer.classList.add('hidden');
+            decisionTreeContainer.classList.remove('hidden');
+            displayDecisionStep(1); // Afficher la première question
+        }
+
+        // Fonction pour afficher un message dans le chatbox
+        function displayMessage(text, senderClass) {
+            const messageDiv = document.createElement('div');
+            // Utilisation de classList pour ajouter plusieurs classes
+            messageDiv.classList.add('message', senderClass);
+            // Utiliser textContent pour éviter les injections XSS simples
+            messageDiv.textContent = text;
+            if(chatbox) { // Ajouter une vérification si chatbox existe
+            chatbox.appendChild(messageDiv);
+            // Vider le conteneur 'thinking' s'il existe
+            clearThinking(); // Assure-toi que clearThinking est aussi définie
+            scrollToBottom(); // Assure-toi que scrollToBottom est aussi définie
+            } else {
+            console.error("ERREUR: Element chatbox non trouvé ! Impossible d'afficher le message.");
+            }
+        }
+
+        let thinkingDiv = null; // Garder une référence (ou ta propre implémentation)
+        function clearThinking() {
+            if(thinkingDiv) {
+                thinkingDiv.remove();
+                thinkingDiv = null;
+            }
+        }
+
+        function scrollToBottom() {
+            // Ajout d'un petit délai pour laisser le temps au DOM de se mettre à jour
+            if(chatbox){
+                setTimeout(() => {
+                    chatbox.scrollTop = chatbox.scrollHeight;
+                }, 50);
+            }
+        }
+
+        // Et la fonction displayThinking est aussi nécessaire si tu l'utilises
+        function displayThinking(show) {
+            if (show && !thinkingDiv) {
+                // ... (code pour créer et afficher thinkingDiv) ...
+                thinkingDiv = document.createElement('div'); // Exemple simplifié
+                thinkingDiv.classList.add('thinking');
+                thinkingDiv.textContent = 'ACW réfléchit...';
+                if(chatbox) chatbox.appendChild(thinkingDiv);
+                scrollToBottom();
+            } else if (!show && thinkingDiv) {
+                clearThinking();
+            }
+        }
+
+
+
+        function displayDecisionStep(stepNumber) {
+            let question = '';
+            let buttonsHtml = '';
+
+            switch (stepNumber) {
+                case 1:
+                    question = "Quel est le domaine principal de votre demande ?";
+                    buttonsHtml = `
+                        <button onclick="handleDecisionChoice(1, 'Logement')">Logement / Primes</button>
+                        <button onclick="handleDecisionChoice(1, 'Identité')">Identité / État Civil</button>
+                        <button onclick="handleDecisionChoice(1, 'Urbanisme')">Urbanisme / Permis</button>
+                        <button onclick="handleDecisionChoice(1, 'Autre')">Autre / Je ne sais pas</button>
+                    `;
+                    break;
+                case 2:
+                    // Question dépendante du choix précédent (simplifié ici)
+                    const domaine = decisionTreeContext.domaine || 'votre démarche';
+                    question = `Concernant "${domaine}", s'agit-il d'une nouvelle demande ou d'un suivi ?`;
+                    buttonsHtml = `
+                        <button onclick="handleDecisionChoice(2, 'Nouvelle demande')">Nouvelle demande</button>
+                        <button onclick="handleDecisionChoice(2, 'Suivi de dossier')">Suivi de dossier</button>
+                        <button onclick="handleDecisionChoice(2, 'Information générale')">Information générale</button>
+                    `;
+                    break;
+                // Ajouter case 3 si besoin d'une 3ème question
+                default:
+                    // Fin de l'arbre
+                    showChatInterface();
+                    return; // Sortir de la fonction
+            }
+
+            decisionTreeContainer.innerHTML = `
+                <h3>${question}</h3>
+                <div class="decision-buttons">${buttonsHtml}</div>
+            `;
+        }
+
+        function handleDecisionChoice(stepNumber, choice) {
+            console.log(`Step ${stepNumber}, Choice: ${choice}`);
+            // Stocker le choix (simplifié)
+            if (stepNumber === 1) decisionTreeContext.domaine = choice;
+            if (stepNumber === 2) decisionTreeContext.typeDemande = choice;
+
+            // Passer à l'étape suivante ou afficher le chat
+            const nextStep = stepNumber + 1;
+            if (nextStep <= 2) { // Mettre <= 3 si 3 questions, etc.
+                displayDecisionStep(nextStep);
+            } else {
+                showChatInterface(); // Fin de l'arbre
+            }
+        }
+
+        // --- Affichage Interface Chat ---
+        function showChatInterface() {
+            console.log('Showing chat interface with mode:', chatMode);
+            console.log('Decision context:', decisionTreeContext);
+
+            decisionTreeContainer.classList.add('hidden');
+            cardContainer.classList.add('hidden'); // Assurer que les cartes sont cachées
+            infoPopup.classList.add('hidden'); // Cacher popup si ouvert
+
+            // Construire un message initial basé sur les choix (optionnel)
+            let initialMessage = "Bonjour ! Comment puis-je vous aider ?";
+            if (decisionTreeContext.domaine && decisionTreeContext.typeDemande) {
+                 initialMessage = `Bonjour ! Vous avez indiqué être intéressé par '${decisionTreeContext.domaine}' concernant '${decisionTreeContext.typeDemande}'. Comment puis-je vous aider plus précisément ?`;
+            } else if (decisionTreeContext.domaine) {
+                 initialMessage = `Bonjour ! Vous avez indiqué être intéressé par '${decisionTreeContext.domaine}'. Quelle est votre question ?`;
+            }
+
+             // Vider le chatbox précédent s'il y en avait un
+             chatbox.innerHTML = '';
+             // Afficher le message initial de l'assistant
+             displayMessage(initialMessage, 'assistant-message');
+
+             // Afficher le conteneur de chat
+             chatContainer.classList.remove('hidden');
+             firstMessageSent = false; // Prêt pour le premier message utilisateur dans ce mode
+             userInput.focus();
+        }
+
+        // --- Logique d'envoi de message (modifiée pour le mode) ---
         async function sendMessage() {
             const query = userInput.value.trim();
-            if (!query || isWaiting) return; // Ne rien faire si vide ou en attente
+            if (!query || isWaiting) return;
 
             isWaiting = true;
             sendButton.disabled = true;
             userInput.disabled = true;
-            displayMessage(query, 'user');
-            userInput.value = ''; // Vider l'input
+            displayMessage(query, 'user-message');
+            const currentQuery = query; // Sauvegarder la query pour l'envoyer
+            userInput.value = '';
+            autoGrow(userInput);
             displayThinking(true);
+
+            const payload = { query: currentQuery };
+            // Ajouter le mode seulement pour le premier message envoyé après avoir choisi le mode
+            if (!firstMessageSent) {
+                payload.mode = chatMode;
+                firstMessageSent = true; // Ne plus envoyer le mode ensuite
+                console.log("Sending first message with mode:", chatMode);
+            }
 
             try {
                 const response = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: query })
+                    body: JSON.stringify(payload) // Envoyer le payload avec/sans mode
                 });
-
-                displayThinking(false);
 
                 if (!response.ok) {
                     let errorDetail = `Erreur HTTP ${response.status}`;
-                    try { // Essayer de lire le détail de l'erreur JSON
-                       const errorData = await response.json();
-                       errorDetail = errorData.detail || errorDetail;
-                    } catch (e) { /* Ignorer si pas de JSON */ }
+                    try { const errorData = await response.json(); errorDetail = errorData.detail || errorDetail; } catch (e) {}
                     throw new Error(errorDetail);
                 }
 
                 const data = await response.json();
-                displayMessage(data.response, 'assistant');
+                clearThinking(); // Enlever "thinking" avant d'afficher la réponse
+
+                if (data.response) {
+                   displayMessage(data.response, 'assistant-message');
+                }
+
+                if (data.action === "show_escalation_form") {
+                    showEscalationForm(data.prefill_data || {});
+                }
 
             } catch (error) {
-                console.error('Erreur lors de l\'envoi du message:', error);
-                displayThinking(false);
-                displayMessage(`Désolé, une erreur est survenue : ${error.message}`, 'assistant error');
+                 console.error('Erreur dans sendMessage:', error);
+                 clearThinking();
+                 displayMessage(`Désolé, une erreur est survenue : ${error.message}`, 'assistant-message error-message');
             } finally {
                 isWaiting = false;
                 sendButton.disabled = false;
                 userInput.disabled = false;
-                userInput.focus(); // Remettre le focus sur l'input
+                if (escalationFormDiv.style.display === 'none') {
+                   userInput.focus();
+                }
+                scrollToBottom(); // Assurer le scroll après réponse/erreur
             }
         }
 
-        // Activer l'envoi avec la touche Entrée
-        userInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) { // Shift+Enter pour aller à la ligne (pas implémenté ici)
-                e.preventDefault(); // Empêcher le comportement par défaut (nouvelle ligne)
-                sendMessage();
+        // --- Gestion Soumission Formulaire Escalade (inchangée par rapport à avant) ---
+        async function handleTicketSubmit(event) {
+            event.preventDefault();
+            formErrorDiv.style.display = 'none';
+            formErrorDiv.textContent = '';
+            if (!ticketForm.checkValidity()) {
+                 formErrorDiv.textContent = "Veuillez remplir tous les champs requis correctement.";
+                 formErrorDiv.style.display = 'block';
+                 return;
             }
-        });
+
+            submitTicketButton.disabled = true;
+            submitTicketButton.textContent = 'Envoi en cours...';
+
+            const formData = new FormData(ticketForm);
+            const ticketData = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/submit-escalation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ticketData)
+                });
+
+                if (!response.ok) {
+                     let errorDetail = `Erreur HTTP ${response.status}`;
+                     try { const errorData = await response.json(); errorDetail = errorData.detail || errorDetail; } catch (e) {}
+                     throw new Error(errorDetail);
+                }
+                const result = await response.json();
+                hideEscalationForm();
+                displayMessage(result.message, 'assistant-message'); // Afficher confirmation dans le chat
+
+            } catch (error) {
+                 console.error('Erreur lors de la soumission du ticket:', error);
+                 formErrorDiv.textContent = `Erreur : ${error.message}`;
+                 formErrorDiv.style.display = 'block';
+            } finally {
+                 submitTicketButton.disabled = false;
+                 submitTicketButton.textContent = 'Envoyer la demande';
+            }
+        }
+
+         // --- Gestion Touche Entrée (inchangée) ---
+         function handleInputKeypress(e) {
+             if (e.key === 'Enter' && !e.shiftKey) {
+                 e.preventDefault();
+                 sendMessage();
+             }
+         }
+
+         // --- Gestion Hauteur Textarea (inchangée) ---
+         function autoGrow(element) { /* ... comme avant ... */ }
+
     </script>
+
 </body>
 </html>
